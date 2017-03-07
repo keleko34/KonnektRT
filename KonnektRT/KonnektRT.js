@@ -289,7 +289,7 @@ define([],function(){
       });
     }
         
-    function attachContentToProto(file,name,prop,content)
+    function attachContentToProto(file,name,prop,content,stringPadding)
     {
       return replace(name+".prototype."+prop+" = ''",name + ".prototype." + prop + " = "+ (stringPadding ? "'" : "") + content.replace(/(\")/g,'/"').replace(/[\r\n]/g,'')+(stringPadding ? "'" : "")+';');
     }
