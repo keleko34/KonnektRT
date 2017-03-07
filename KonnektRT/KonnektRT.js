@@ -1,5 +1,6 @@
 define([],function(){
   var fs = require('fs'),
+      query = require('querystring'),
       appPath = process.cwd().replace(/\\/g,"/")+"/app",
       path = require('path'),
       replace = require('replacestream'),
@@ -11,7 +12,7 @@ define([],function(){
     /* This is the main routing method */
     function KonnektRT(req,res,next)
     {
-      if(req.url.indexOf('component') === 0)
+      if(req.url.indexOf('/component') === 0)
       {
         /* sort query into single object */
         if(!req.query) req.query = {};
@@ -24,7 +25,7 @@ define([],function(){
         }
         
         /* seperate out important queries */
-        var _name = req.url.replace('component/',''),
+        var _name = req.url.replace('/component/',''),
             _env = req.query.env,
             _debug = req.query.debug,
             _edit = req.query.edit,
