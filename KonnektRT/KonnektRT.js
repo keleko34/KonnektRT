@@ -133,7 +133,7 @@ define([],function(){
                 attachCMS(_base,_name,function(content){
                   _finished += 1;
                   _file.pipe(injectPrototype(_name,'k_cms'))
-                  .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())"));
+                  .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())", false));
                   if(_finished === _total) _file.pipe(res);
                 });
               }
@@ -214,7 +214,7 @@ define([],function(){
           fs.readFile(base+'/cms/'+name+'.html','utf8',function(err,content){
             if(!err)
             {
-              contentMain += '\r\n'+name+'.prototype.k_html = "'+content+'";';
+              contentMain += '\r\n'+name+'.prototype.k_html = "'+content.replace(/[\r\n]/g,'')+'";';
               _finished += 1;
               if(_finished === 2) cb(contentMain);
             }
@@ -226,7 +226,7 @@ define([],function(){
           fs.readFile(base+'/cms/'+name+'.css','utf8',function(err,content){
             if(!err)
             {
-              contentMain += '\r\n'+name+'.prototype.k_css = "'+content+'";';
+              contentMain += '\r\n'+name+'.prototype.k_css = "'+content.replace(/[\r\n]/g,'')+'";';
               _finished += 1;
               if(_finished === 2) cb(contentMain);
             }
