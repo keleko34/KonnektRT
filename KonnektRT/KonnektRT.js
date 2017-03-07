@@ -81,7 +81,7 @@ define([],function(){
                   {
                       if(cms)
                       {
-                        cms = cms.replace(/(\r\n)/g,'\r\n\t');
+                        cms = cms.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t');
                         _file.pipe(injectPrototype(_name,'k_cms'))
                         .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){\r\n\t"+cms+"\r\n\treturn "+_name+";\r\n}())"))
                         .pipe(injectPrototype(_name, 'k_html'))
