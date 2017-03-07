@@ -17,7 +17,8 @@ define([],function(){
         /* sort query into single object */
         if(!req.query) req.query = {};
         req.stringQuery = KonnektRT.parseQuery(req.url);
-        req.url = req.url.substring(0,req.url.indexOf('?'));
+        if(req.url.indexOf('?') !== -1) req.url = req.url.substring(0,req.url.indexOf('?'));
+        req.url = req.url.replace('.js','');
 
         for (var x = 0, keys=Object.keys(req.stringQuery), len = keys.length; x < len; x++)
         {
@@ -25,7 +26,7 @@ define([],function(){
         }
         
         /* seperate out important queries */
-        var _name = req.url.replace('/component/',''),
+        var _name = req.url.replace('/component/','').replace(/[\/]/g,''),
             _env = req.query.env || 'prod',
             _debug = req.query.debug,
             _edit = req.query.edit,
@@ -87,6 +88,7 @@ define([],function(){
                         .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
                         .pipe(injectPrototype(_name, 'k_css'))
                         .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
+                        .pipe(wrapLib(_name))
                         .pipe(res);
                       }
                       else
@@ -95,12 +97,14 @@ define([],function(){
                         .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
                         .pipe(injectPrototype(_name, 'k_css'))
                         .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
+                        .pipe(wrapLib(_name))
                         .pipe(res);
                       }
                   }
                   else
                   {
-                      _file.pipe(res);
+                      _file.pipe(wrapLib(_name))
+                      .pipe(res);
                   }
               }
 
@@ -133,11 +137,13 @@ define([],function(){
                     cms = cms.replace(/(\r\n)/g, '\r\n\t');
                     _file.pipe(injectPrototype(_name, 'k_cms'))
                     .pipe(attachContentToProto(_file, _name, 'k_cms', "(function(){\r\n\t" + cms + "\r\n\treturn " + _name + ";\r\n}())"))
+                    .pipe(wrapLib(_name))
                     .pipe(res);
                 }
                 else
                 {
-                    _file.pipe(res);
+                    _file.pipe(wrapLib(_name))
+                    .pipe(res);
                 }
               }
 
@@ -258,7 +264,7 @@ define([],function(){
       })
     }
         
-    function streamInjector(options)
+    function streamInjector(tform,tformEnd)
     {
       var Transform = stream.Transform;
       
@@ -269,12 +275,19 @@ define([],function(){
       }
       util.inherits(inject, Transform);
       
-      inject.prototype._transform = function (chunk, enc, cb) {
-        this.push((typeof options === 'function' ? options(chunk.toString()) : chunk.toString()));
+      inject.prototype._transform = function (chunk, enc, cb)
+      {
+        this.push((typeof tform === 'function' ? tform(chunk.toString()) : chunk.toString()));
         cb();
       };
       
-      return new inject(options);
+      inject.prototype._flush = function(cb)
+      {
+        if(typeof tformEnd === 'function') this.push(tformEnd());
+        cb();
+      }
+
+      return new inject({});
     }
         
     function injectPrototype(name,prop)
@@ -302,6 +315,26 @@ define([],function(){
         if(counter === 0 && startCounter) chunk += "\r\n"+name+".prototype."+prop+" = ''";
         return chunk;
       });
+    }
+
+    function wrapLib(name)
+    {
+        var start = false;
+        var str = streamInjector(function(chunk){
+            if(!start)
+            {
+                start = true;
+                chunk = "K_Components['"+name+"'] = (function(){\r\n\t"+chunk.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t');
+            }
+            else
+            {
+                chunk =	chunk.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t')
+            }
+            return chunk;
+        },function(){
+            return "\r\n\treturn "+name+";\r\n}());";
+        });
+        return str;
     }
         
     function attachContentToProto(file, name, prop, content, stringPadding, replaceLines) {
