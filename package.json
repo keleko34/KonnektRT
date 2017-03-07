@@ -1,0 +1,49 @@
+{
+  "name": "konnektrt",
+  "version": "0.0.0",
+  "description": "A backend routing library for konnektjs",
+  "keywords": [
+    "Routing",
+    "konnektjs",
+    "components"
+  ],
+  "author": {
+    "name": "Keleko34",
+    "email": "gregory.guidero@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Gregory Guidero"
+    }
+  ],
+  "main": "index",
+  "license": {
+    "type": "MIT",
+    "url": "http://en.wikipedia.org/wiki/MIT_License"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/keleko34/konnektrt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/keleko34/konnektrt/issues"
+  },
+  "devDependencies": {
+    "K_Tasks": "^0.5.5"
+  },
+  "scripts": {
+    "installer": "npm run installGulp && npm run installBower && npm i && bower i",
+    "i": "npm run installGulp && npm run installBower && npm i && bower i",
+    "installBower": "npm list -g bower || npm i bower -g",
+    "installGulp": "npm list -g gulp || npm i git+https://github.com/keleko34/gulp.git -g"
+  },
+  "maintainers": [
+    {
+      "name": "keleko34",
+      "email": "gregory.guidero@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "replacestream": "^4.0.2"
+  }
+}

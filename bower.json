@@ -1,0 +1,27 @@
+{
+  "name": "konnektrt",
+  "description": "A backend routing library for konnektjs",
+  "version": "0.0.0",
+  "main": "index",
+  "authors": [
+    "Keleko34"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "routing",
+    "konnektjs",
+    "components"
+  ],
+  "homepage": "https://github.com/keleko34/konnektrt",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    ".gulp"
+  ],
+  "devDependencies": {
+    "requirejs": "~2.1.11"
+  }
+}
