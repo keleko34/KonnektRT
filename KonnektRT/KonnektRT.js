@@ -3,9 +3,9 @@ define([],function(){
       query = require('querystring'),
       appPath = process.cwd().replace(/\\/g,"/")+"/app",
       path = require('path'),
-      replace = require('replacestream'),
-      stream = require('stream'),
-      util = require('util');
+      streamAppender = require(__dirname.replace(/\\/g,'/')+'/../../Stream_Appender/Build/Stream_Appender'),
+      preappend = streamAppender.preappend,
+      append = streamAppender.append;
   
   function CreateKonnektRT()
   {
@@ -82,28 +82,28 @@ define([],function(){
                       if(cms)
                       {
                         cms = cms.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t');
-                        _file.pipe(injectPrototype(_name,'k_cms'))
-                        .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){\r\n\t"+cms+"\r\n\treturn "+_name+";\r\n}())"))
-                        .pipe(injectPrototype(_name, 'k_html'))
-                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
-                        .pipe(injectPrototype(_name, 'k_css'))
-                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
-                        .pipe(wrapLib(_name))
+
+                        _file.pipe(append(
+                           '\r\n'+_name+'.prototype.k_cms = (function(){\r\n\t'+cms+'\r\n\treturn '+_name+';\r\n}());'
+                          +'\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                        ))
+                        .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                         .pipe(res);
                       }
                       else
                       {
-                        _file.pipe(injectPrototype(_name, 'k_html'))
-                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
-                        .pipe(injectPrototype(_name, 'k_css'))
-                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
-                        .pipe(wrapLib(_name))
+                        _file.pipe(append(
+                           '\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                        ))
+                        .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                         .pipe(res);
                       }
                   }
                   else
                   {
-                      _file.pipe(wrapLib(_name))
+                      _file.pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                       .pipe(res);
                   }
               }
@@ -135,14 +135,13 @@ define([],function(){
               {
                 if (cms) {
                     cms = cms.replace(/(\r\n)/g, '\r\n\t');
-                    _file.pipe(injectPrototype(_name, 'k_cms'))
-                    .pipe(attachContentToProto(_file, _name, 'k_cms', "(function(){\r\n\t" + cms + "\r\n\treturn " + _name + ";\r\n}())"))
-                    .pipe(wrapLib(_name))
+                    _file.pipe(append('\r\n'+_name+'.prototype.k_cms = (function(){\r\n\t'+cms+'\r\n\treturn '+_name+';\r\n}());'))
+                    .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                     .pipe(res);
                 }
                 else
                 {
-                    _file.pipe(wrapLib(_name))
+                    _file.pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                     .pipe(res);
                 }
               }
@@ -262,94 +261,6 @@ define([],function(){
           cb("function "+name+"(){/*There was an error retrieving cms components*/};");
         }
       })
-    }
-        
-    function streamInjector(tform,tformEnd)
-    {
-      var Transform = stream.Transform;
-      
-      function inject(options)
-      {
-        // init Transform
-        Transform.call(this, options);
-      }
-      util.inherits(inject, Transform);
-      
-      inject.prototype._transform = function (chunk, enc, cb)
-      {
-        this.push((typeof tform === 'function' ? tform(chunk.toString()) : chunk.toString()));
-        cb();
-      };
-      
-      inject.prototype._flush = function(cb)
-      {
-        if(typeof tformEnd === 'function') this.push(tformEnd());
-        cb();
-      }
-
-      return new inject({});
-    }
-        
-    function injectPrototype(name,prop)
-    { 
-      var counter = 0,
-          startCounter = false;
-      
-      function count(char,ch)
-      {
-        return (ch.split(char).length - 1);
-      }
-      
-      return streamInjector(function(chunk){
-        if(startCounter)
-        {
-          counter += count("{",chunk);
-          counter -= count("}",chunk);
-        }
-        if(chunk.indexOf(name) !== -1)
-        {
-          startCounter = true;
-          counter += count("{",chunk);
-          counter -= count("}",chunk);
-        }
-        if(counter === 0 && startCounter) chunk += "\r\n"+name+".prototype."+prop+" = ''";
-        return chunk;
-      });
-    }
-
-    function wrapLib(name)
-    {
-        var start = false;
-        var str = streamInjector(function(chunk){
-            if(!start)
-            {
-                start = true;
-                chunk = "K_Components['"+name+"'] = (function(){\r\n\t"+chunk.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t');
-            }
-            else
-            {
-                chunk =	chunk.replace(/(\r)/g,'').replace(/(\n)/g,'\r\n\t')
-            }
-            return chunk;
-        },function(){
-            return "\r\n\treturn "+name+";\r\n}());";
-        });
-        return str;
-    }
-        
-    function attachContentToProto(file, name, prop, content, stringPadding, replaceLines) {
-        var replaceString = name + ".prototype." + prop + " = " + (stringPadding ? "'" : "");
-        if(replaceLines)
-        {
-            replaceString += content.replace(/(\")/g, '/"').replace(/[\r\n]/g, '');
-        }
-        else
-        {
-            replaceString += (stringPadding ? content.replace(/(\")/g, '/"') : content);
-        }
-        replaceString += (stringPadding ? "'" : "") + ';';
-
-        return replace(name + ".prototype." + prop + " = ''", replaceString);
     }
     
     return KonnektRT;
