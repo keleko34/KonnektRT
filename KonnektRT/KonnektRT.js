@@ -81,19 +81,19 @@ define([],function(){
                       if(cms)
                       {
                         _file.pipe(injectPrototype(_name,'k_cms'))
-                        .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())"))
+                        .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){\r\n\t"+cms+"\r\n\treturn "+_name+";\r\n}())"))
                         .pipe(injectPrototype(_name, 'k_html'))
-                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true))
+                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
                         .pipe(injectPrototype(_name, 'k_css'))
-                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true))
+                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
                         .pipe(res);
                       }
                       else
                       {
                         _file.pipe(injectPrototype(_name, 'k_html'))
-                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true))
+                        .pipe(attachContentToProto(_file, _name, 'k_html', html, true, true))
                         .pipe(injectPrototype(_name, 'k_css'))
-                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true))
+                        .pipe(attachContentToProto(_file, _name, 'k_css', css, true, true))
                         .pipe(res);
                       }
                   }
@@ -214,7 +214,7 @@ define([],function(){
           fs.readFile(base+'/cms/'+name+'.html','utf8',function(err,content){
             if(!err)
             {
-              contentMain += '\r\n'+name+'.prototype.k_html = "'+content.replace(/[\r\n]/g,'')+'";';
+              contentMain += '\r\n'+name+'.prototype.kcms_html = "'+content.replace(/[\r\n]/g,'')+'";';
               _finished += 1;
               if(_finished === 2) cb(contentMain);
             }
@@ -226,7 +226,7 @@ define([],function(){
           fs.readFile(base+'/cms/'+name+'.css','utf8',function(err,content){
             if(!err)
             {
-              contentMain += '\r\n'+name+'.prototype.k_css = "'+content.replace(/[\r\n]/g,'')+'";';
+              contentMain += '\r\n'+name+'.prototype.kcms_css = "'+content.replace(/[\r\n]/g,'')+'";';
               _finished += 1;
               if(_finished === 2) cb(contentMain);
             }
@@ -289,9 +289,19 @@ define([],function(){
       });
     }
         
-    function attachContentToProto(file,name,prop,content,stringPadding)
-    {
-      return replace(name+".prototype."+prop+" = ''",name + ".prototype." + prop + " = "+ (stringPadding ? "'" : "") + content.replace(/(\")/g,'/"').replace(/[\r\n]/g,'')+(stringPadding ? "'" : "")+';');
+    function attachContentToProto(file, name, prop, content, stringPadding, replaceLines) {
+        var replaceString = name + ".prototype." + prop + " = " + (stringPadding ? "'" : "");
+        if(replaceLines)
+        {
+            replaceString = content.replace(/(\")/g, '/"').replace(/[\r\n]/g, '');
+        }
+        else
+        {
+            replaceString = content.replace(/(\")/g, '/"');
+        }
+        replaceString += (stringPadding ? "'" : "") + ';';
+
+        return replace(name + ".prototype." + prop + " = ''", replaceString);
     }
     
     return KonnektRT;
