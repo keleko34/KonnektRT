@@ -80,6 +80,7 @@ define([],function(){
                   {
                       if(cms)
                       {
+                        cms = cms.replace(/(\r\n)/g,'\r\n\t');
                         _file.pipe(injectPrototype(_name,'k_cms'))
                         .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){\r\n\t"+cms+"\r\n\treturn "+_name+";\r\n}())"))
                         .pipe(injectPrototype(_name, 'k_html'))
@@ -293,11 +294,11 @@ define([],function(){
         var replaceString = name + ".prototype." + prop + " = " + (stringPadding ? "'" : "");
         if(replaceLines)
         {
-            replaceString = content.replace(/(\")/g, '/"').replace(/[\r\n]/g, '');
+            replaceString += content.replace(/(\")/g, '/"').replace(/[\r\n]/g, '');
         }
         else
         {
-            replaceString = (stringPadding ? content.replace(/(\")/g, '/"') : content);
+            replaceString += (stringPadding ? content.replace(/(\")/g, '/"') : content);
         }
         replaceString += (stringPadding ? "'" : "") + ';';
 
