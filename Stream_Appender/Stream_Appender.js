@@ -57,7 +57,7 @@ define([],function(){
       return Stream_Appender(function(chunk){
         if(!start)
         {
-          chunk = str+(typeof alter === 'function' ? alter(chunk) : chunk);
+          chunk = pre+(typeof alter === 'function' ? alter(chunk) : chunk);
           start = true;
         }
         return chunk;

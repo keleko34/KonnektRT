@@ -2,8 +2,9 @@ define([],function(){
   var fs = require('fs'),
       query = require('querystring'),
       appPath = process.cwd().replace(/\\/g,"/")+"/app",
+      base = __dirname.replace(/\\/g,'/')+'/../..',
       path = require('path'),
-      streamAppender = require(__dirname.replace(/\\/g,'/')+'/../../Stream_Appender/Build/Stream_Appender'),
+      streamAppender = require(base+'/Stream_Appender/Build/Stream_Appender')(),
       preappend = streamAppender.preappend,
       append = streamAppender.append;
   
