@@ -297,7 +297,7 @@ define([],function(){
         }
         else
         {
-            replaceString = content.replace(/(\")/g, '/"');
+            replaceString = (stringPadding ? content.replace(/(\")/g, '/"') : content);
         }
         replaceString += (stringPadding ? "'" : "") + ';';
 
