@@ -1,6 +1,6 @@
 {
   "name": "konnektrt",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A backend routing library for konnektjs",
   "keywords": [
     "Routing",
