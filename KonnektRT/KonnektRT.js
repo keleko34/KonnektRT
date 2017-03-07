@@ -19,14 +19,14 @@ define([],function(){
         req.stringQuery = KonnektRT.parseQuery(req.url);
         req.url = req.url.substring(0,req.url.indexOf('?'));
 
-        for(var x=0,len=Object.keys(req.stringQuery);x<len;x++)
+        for (var x = 0, keys=Object.keys(req.stringQuery), len = keys.length; x < len; x++)
         {
-          req.query[req.stringQuery[x]] = req.stringQuery[req.stringQuery[x]];
+            req.query[keys[x]] = req.stringQuery[keys[x]];
         }
         
         /* seperate out important queries */
         var _name = req.url.replace('/component/',''),
-            _env = req.query.env,
+            _env = req.query.env || 'prod',
             _debug = req.query.debug,
             _edit = req.query.edit,
             _allowed = (req.sessions ? req.sessions.cms : false),
@@ -174,7 +174,9 @@ define([],function(){
     function error(res,code,msg)
     {
       res.statusCode = code;
-      res.end(msg,'utf8',function(){});
+      res.statusMessage = msg;
+      res.write(msg,'utf8');
+      res.end();
     }
     
     function attachCMS(base,name,cb)
