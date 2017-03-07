@@ -38,7 +38,7 @@ define([],function(){
             _base = appPath+'/components/'+_name,
             
             /* Full Path */
-            _path = appPath+'/components/'+_name+'/'+(_env === 'dev' ? _name+_end : _end),
+            _path = _base + _end,
             
             /* File Stream */
             _file,
@@ -125,20 +125,34 @@ define([],function(){
             {
               _file = fs.createReadStream(_path);
 
+              var _cms ;
+
+              function onFinish(cms)
+              {
+                if (cms) {
+                    cms = cms.replace(/(\r\n)/g, '\r\n\t');
+                    _file.pipe(injectPrototype(_name, 'k_cms'))
+                    .pipe(attachContentToProto(_file, _name, 'k_cms', "(function(){\r\n\t" + cms + "\r\n\treturn " + _name + ";\r\n}())"))
+                    .pipe(res);
+                }
+                else
+                {
+                    _file.pipe(res);
+                }
+              }
+
               if(_edit && _allowed)
               {
                 _total += 1;
-                _file.pipe(injectPrototype(_name,'k_cms'));
 
                 /* wrap and add cms code */
                 attachCMS(_base,_name,function(content){
                   _finished += 1;
-                  _file.pipe(injectPrototype(_name,'k_cms'))
-                  .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())", false));
-                  if(_finished === _total) _file.pipe(res);
+                  _cms = content;
+                  if (_finished === _total) onFinish(_cms);
                 });
               }
-              if(_total === 0) _file.pipe(res);
+              if(_total === 0) onFinish(_cms);
             }
           }
           else if(err && err.code === 'ENOENT')
@@ -193,7 +207,7 @@ define([],function(){
     
     function translateEnv(name,env,debug)
     {
-      return (env !== 'dev' ? ('/build/'+env+'/'+name+(debug ? '.js' : '.min.js')) : '.js');
+      return (env !== 'dev' ? ('/build/' + env + '/' + name + (debug ? '.js' : '.min.js')) : '/'+name+'.js');
     }
     
     function error(res,code,msg)
