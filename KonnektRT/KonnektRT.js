@@ -58,65 +58,63 @@ define([],function(){
               if(_edit && _allowed)
               {
                 _total += 1;
-                _file.pipe(injectProperty(_name,'k_cms'));
                 
                 attachCMS(_base,_name,function(content){
                   _finished += 1;
-                  
-                  
-                });
-                
-                /* wrap and add cms code */
-                
-              }
-              _file.pipe(injectProperty(_name,'K_css'))
-              .pipe(injectProperty(_name,'k_html'));
-              
-            }
-            else
-            {
-              _file = fs.createReadStream(_path);
-              
-              if(_edit && _allowed)
-              {
-                _total += 1;
-                _file.pipe(injectProperty(_name,'k_cms'));
-                
-                /* wrap and add cms code */
-                attachCMS(_base,_name,function(content){
-                  _finished += 1;
-                  _file.pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())"));
+                  _file.pipe(injectPrototype(_name,'k_cms'))
+                  .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())"));
                   if(_finished === _total) _file.pipe(res);
                 });
+                
+                /* wrap and add cms code */
+                
               }
-              _file.pipe(injectProperty(_name,'K_css'))
-              .pipe(injectProperty(_name,'k_html'));
               
               /* replace props with file content */
-              fs.readFile(base+'/'+name+'.html','utf8',function(err,content){
+              fs.readFile(_base+'/'+_name+'.html','utf8',function(err,content){
                 _finished += 1;
                 if(!err)
                 {
-                  _file.pipe(injectProperty(_name,'k_html'))
+                  _file.pipe(injectPrototype(_name,'k_html'))
                   .pipe(attachContentToProto(_file,_name,'k_html','"'+content+'"'));
                   
                 }
                 if(_finished === _total) _file.pipe(res);
               });
               
-              fs.readFile(base+'/'+name+'.css','utf8',function(err,content){
+              fs.readFile(_base+'/'+_name+'.css','utf8',function(err,content){
                 _finished += 1;
                 if(!err)
                 {
-                  _file.pipe(injectProperty(_name,'k_css'))
+                  _file.pipe(injectPrototype(_name,'k_css'))
                   .pipe(attachContentToProto(_file,_name,'k_css','"'+content+'"'));
                   
                 }
                 if(_finished === _total) _file.pipe(res);
               });
+
+            }
+            else
+            {
+              _file = fs.createReadStream(_path);
+
+              if(_edit && _allowed)
+              {
+                _total += 1;
+                _file.pipe(injectPrototype(_name,'k_cms'));
+
+                /* wrap and add cms code */
+                attachCMS(_base,_name,function(content){
+                  _finished += 1;
+                  _file.pipe(injectPrototype(_name,'k_cms'))
+                  .pipe(attachContentToProto(_file,_name,'k_cms',"(function(){"+content+"\r\nreturn "+_name+";\r\n}())"));
+                  if(_finished === _total) _file.pipe(res);
+                });
+              }
+              if(_total === 0) _file.pipe(res);
             }
           }
-          if(err && err.code === 'ENOENT')
+          else if(err && err.code === 'ENOENT')
           {
             if(_env !== 'dev')
             {
@@ -175,8 +173,9 @@ define([],function(){
     {
       res.statusCode = code;
       res.statusMessage = msg;
-      res.write(msg,'utf8');
-      res.end();
+      res.write(msg,'utf8',function(){
+        res.end();
+      });
     }
     
     function attachCMS(base,name,cb)
