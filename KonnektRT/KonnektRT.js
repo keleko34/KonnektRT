@@ -86,8 +86,8 @@ define([],function(){
 
                         _file.pipe(append(
                            '\r\n'+_name+'.prototype.k_cms = (function(){\r\n\t'+cms+'\r\n\treturn '+_name+';\r\n}());'
-                          +'\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
-                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                          +'\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,"'")+'";'
+                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,"'")+'";'
                         ))
                         .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                         .pipe(res);
@@ -95,8 +95,8 @@ define([],function(){
                       else
                       {
                         _file.pipe(append(
-                           '\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
-                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,'/"')+'";'
+                           '\r\n'+_name+'.prototype.k_html = "'+html.replace(/[\r\n]/g,'').replace(/[\"]/g,"'")+'";'
+                          +'\r\n'+_name+'.prototype.k_css = "'+css.replace(/[\r\n]/g,'').replace(/[\"]/g,"'")+'";'
                         ))
                         .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                         .pipe(res);
