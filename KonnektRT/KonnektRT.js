@@ -137,13 +137,11 @@ define([],function(){
                 if (cms) {
                     cms = cms.replace(/(\r\n)/g, '\r\n\t');
                     _file.pipe(append('\r\n'+_name+'.prototype.k_cms = (function(){\r\n\t'+cms+'\r\n\treturn '+_name+';\r\n}());'))
-                    .pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
                     .pipe(res);
                 }
                 else
                 {
-                    _file.pipe(preappend('if(!K_Components) K_Components = {};\r\nK_Components["'+_name+'"] = (function(){\r\n\t','\r\n\treturn '+_name+';\r\n}());'))
-                    .pipe(res);
+                    _file.pipe(res);
                 }
               }
 
