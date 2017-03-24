@@ -1,7 +1,7 @@
 define([],function(){
   var fs = require('fs'),
       query = require('querystring'),
-      appPath = process.cwd().replace(/\\/g,"/")+"/app",
+      appPath = process.cwd().replace(/\\/g,"/"),
       base = __dirname.replace(/\\/g,'/')+'/../..',
       path = require('path'),
       streamAppender = require(base+'/Stream_Appender/Build/Stream_Appender')(),
